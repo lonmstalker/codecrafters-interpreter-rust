@@ -28,8 +28,8 @@ fn process_tokens(code: String) -> i32 {
                 ';' => println!("SEMICOLON ; null"),
                 '*' => println!("STAR * null"),
                 '\n' => line += 1,
-                '$' | '#' => {
-                    eprintln!("[line {}] Error: Unexpected character: {}", line, c);
+                unknown => {
+                    eprintln!("[line {}] Error: Unexpected character: {}", line, unknown);
                     return 65
                 }
                 _ => {}
