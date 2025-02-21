@@ -15,14 +15,12 @@ fn main() {
     let filename = &args[2];
 
     let code = match command.as_str() {
-        "tokenize" => lexer::tokenize(filename),
+        "tokenize" => {
+            exit(lexer::tokenize(filename))
+        }
         _ => {
             writeln!(io::stderr(), "Unknown command: {}", command).unwrap();
             0
         }
     };
-
-    if code != 0 {
-        exit(code);
-    }
 }
