@@ -1,9 +1,10 @@
 use std::{fs, io};
+use std::io::Write;
 
 pub fn tokenize(filename: &String) -> i32 {
 
     let file_contents = fs::read_to_string(filename).unwrap_or_else(|_| {
-        writeln!(io::stderr(), "Failed to read file {}", filename).unwrap();
+        writeln!(io::stderr(), "Failed to read file {}", *filename).unwrap();
         String::new()
     });
 
