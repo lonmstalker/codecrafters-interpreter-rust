@@ -31,10 +31,9 @@ fn process_tokens(code: String) -> i32 {
                 '*' => println!("STAR * null"),
                 '\n' => line += 1,
                 unknown => {
-                    eprintln!("[line {}] Error: Unexpected character: {}", line, unknown);
+                    eprintln!("[line 1] Error: Unexpected character: {}", unknown);
                     return 65;
                 }
-                _ => {}
             }
         }
     }
