@@ -22,6 +22,8 @@ fn main() {
                 String::new()
             });
 
+            let mut line = 1;
+
             if !file_contents.is_empty() {
                 for c in file_contents.chars() {
                     match c {
@@ -35,6 +37,9 @@ fn main() {
                         '-' => println!("MINUS - null"),
                         ';' => println!("SEMICOLON ; null"),
                         '*' => println!("STAR * null"),
+                        '\n' => line += 1,
+                        '$' => println!("[line {}] Error: Unexpected character: $", line),
+                        '#' => println!("[line {}] Error: Unexpected character: #", line),
                         _ => {}
                     }
                 }
