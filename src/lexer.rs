@@ -2,13 +2,15 @@ use std::{fs, io};
 use std::io::Write;
 
 pub fn tokenize(filename: &String) -> i32 {
-
     let file_contents = fs::read_to_string(filename).unwrap_or_else(|_| {
         writeln!(io::stderr(), "Failed to read file {}", *filename).unwrap();
         String::new()
     });
 
-    process_tokens(file_contents)
+    let result = process_tokens(file_contents);
+    println!("EOF  null");
+
+    result
 }
 
 fn process_tokens(code: String) -> i32 {
@@ -30,15 +32,11 @@ fn process_tokens(code: String) -> i32 {
                 '\n' => line += 1,
                 unknown => {
                     eprintln!("[line {}] Error: Unexpected character: {}", line, unknown);
-                    return 65
+                    return 65;
                 }
                 _ => {}
             }
         }
-        println!("EOF  null");
-    } else {
-        println!("EOF  null"); // Placeholder, remove this line when implementing the scanner
     }
-
     0
 }
