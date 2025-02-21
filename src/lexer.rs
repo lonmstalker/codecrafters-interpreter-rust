@@ -51,6 +51,7 @@ fn process_tokens(code: String) -> i32 {
                         let next_data = *next.unwrap();
                         if next_data == '=' {
                             tokens.push(Token::new(TokenType::BANG_EQUAL, "!=".to_string()));
+                            data.next();
                             continue;
                         }
                     } else {
