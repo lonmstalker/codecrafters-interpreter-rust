@@ -38,8 +38,8 @@ fn main() {
                         ';' => println!("SEMICOLON ; null"),
                         '*' => println!("STAR * null"),
                         '\n' => line += 1,
-                        '$' => println!("[line {}] Error: Unexpected character: $", line),
-                        '#' => println!("[line {}] Error: Unexpected character: #", line),
+                        '$' => eprintln!("[line {}] Error: Unexpected character: $", line),
+                        '#' => eprintln!("[line {}] Error: Unexpected character: #", line),
                         _ => {}
                     }
                 }
