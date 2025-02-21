@@ -44,6 +44,19 @@ fn process_tokens(code: String) -> i32 {
                     }
 
                 }
+                '!' => {
+                    let next = data.peek();
+                    
+                    if next.is_some() {
+                        let next_data = *next.unwrap();
+                        if next_data == '=' {
+                            tokens.push(Token::new(TokenType::BANG_EQUAL, "!=".to_string()));
+                            continue;
+                        }
+                    } else {
+                        tokens.push(Token::new(TokenType::BANG, c.to_string()));
+                    }
+                }
                 '\n' => line += 1,
                 unknown => {
                     eprintln!("[line {}] Error: Unexpected character: {}", line, unknown);
@@ -105,4 +118,6 @@ enum TokenType {
     EQUAL,
     EQUAL_EQUAL,
     EOF,
+    BANG,
+    BANG_EQUAL,
 }
