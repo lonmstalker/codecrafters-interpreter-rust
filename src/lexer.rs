@@ -15,6 +15,7 @@ pub fn tokenize(filename: &String) -> i32 {
 
 fn process_tokens(code: String) -> i32 {
     let mut line = 1;
+    let mut result = 0
 
     if !code.is_empty() {
         for c in code.chars() {
@@ -31,11 +32,11 @@ fn process_tokens(code: String) -> i32 {
                 '*' => println!("STAR * null"),
                 '\n' => line += 1,
                 unknown => {
-                    eprintln!("[line 1] Error: Unexpected character: {}", unknown);
-                    return 65;
+                    eprintln!("[line {}] Error: Unexpected character: {}", line, unknown);
+                    result = 65
                 }
             }
         }
     }
-    0
+    result
 }
