@@ -54,7 +54,7 @@ fn process_tokens(code: String) -> i32 {
     }
 
     for token in tokens {
-        println!("{:?} {} null", token._type, token._value.unwrap_or_else(|| "".to_string()))
+        println!("{:?} {} null", token._type, token._string)
     }
 
     result
