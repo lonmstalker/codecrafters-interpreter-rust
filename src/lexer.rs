@@ -54,9 +54,9 @@ fn process_tokens(code: String) -> i32 {
                             data.next();
                             continue;
                         }
-                    } else {
-                        tokens.push(Token::new(TokenType::BANG, c.to_string()));
                     }
+
+                    tokens.push(Token::new(TokenType::BANG, c.to_string()));
                 }
                 '\n' => line += 1,
                 unknown => {
