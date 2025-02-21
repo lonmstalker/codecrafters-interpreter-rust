@@ -28,6 +28,10 @@ fn main() {
                         println!("LEFT_PAREN ( null")
                     } else if c == ')' {
                         println!("RIGHT_PAREN ) null")
+                    } else if c == '{' {
+                        println!("LEFT_BRACE {{ null")
+                    } else if c == '}' {
+                        println!("RIGHT_BRACE }} null")
                     }
                 }
                 println!("EOF  null");
