@@ -24,14 +24,16 @@ fn main() {
 
             if !file_contents.is_empty() {
                 for c in file_contents.chars() {
-                    if c == '(' {
-                        println!("LEFT_PAREN ( null")
-                    } else if c == ')' {
-                        println!("RIGHT_PAREN ) null")
-                    } else if c == '{' {
-                        println!("LEFT_BRACE {{ null")
-                    } else if c == '}' {
-                        println!("RIGHT_BRACE }} null")
+                    match c {
+                        '(' => println!("LEFT_PAREN ( null"),
+                        ')' => println!("RIGHT_PAREN ) null"),
+                        '{' => println!("LEFT_BRACE {{ null"),
+                        '}' => println!("RIGHT_BRACE }} null"),
+                        ',' => println!("COMMA , null"),
+                        '.' => println!("DOT . null"),
+                        '+' => println!("PLUS + null"),
+                        '*' => println!("STAR * null"),
+                        _ => {}
                     }
                 }
                 println!("EOF  null");
