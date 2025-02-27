@@ -131,8 +131,7 @@ fn skip_while(data: &mut Peekable<Chars>, predict: impl Fn(char) -> bool) {
 fn string(data: &mut Peekable<Chars>, line: i32) -> (String, String, i32) {
     let mut result = 0;
     let mut value = String::new();
-    let mut string = String::new();
-    string.push('"');
+    let mut string = String::from('"');
 
     loop {
         if let Some(next) = data.next() {
@@ -152,31 +151,41 @@ fn string(data: &mut Peekable<Chars>, line: i32) -> (String, String, i32) {
 }
 
 fn number(current: char, data: &mut Peekable<Chars>) -> (String, String) {
-    let mut has_dot = false;
-    let mut value = String::new();
-    let mut number = String::new();
-
-    value.push(current);
-    number.push(current);
+    let mut dot_index: i32 = -1;
+    let mut value = String::from(current);
+    let mut number = String::from(current);
 
     loop {
         if let Some(&next) = data.peek() {
-            if next == '.' {
-                has_dot = true;
+            if !next.is_numeric() && next != '.' {
+                break;
             }
-            if !next.is_numeric() && next != '.'  {
-                break
-            }
+
             value.push(next);
             number.push(next);
+
+            if next == '.' {
+                dot_index = value.len() as i32;
+            }
+
             data.next();
         } else {
-            break
+            break;
         }
     }
 
-    if !has_dot {
+    if dot_index == -1 {
         value.push_str(".0");
+    } else {
+        let mut len = value.len();
+        for (i, val) in value.char_indices().rev() {
+            // убираем все 0 после точки, оставляя только первую
+            if val != '0' || dot_index == i as i32 {
+                break;
+            }
+            len -= 1;
+        }
+        value.truncate(len);
     }
 
     (number, value)
@@ -249,5 +258,5 @@ enum TokenType {
     GREATER_EQUAL,
     SLASH,
     STRING,
-    NUMBER
+    NUMBER,
 }
