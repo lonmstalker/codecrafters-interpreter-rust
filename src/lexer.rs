@@ -66,12 +66,13 @@ fn process_tokens(code: String) -> i32 {
                 '/' => {
                     if let Some(&next) = data.peek() {
                         if next == '/' {
-                           skip_while(&mut data, |token| token != '\n');
-                            continue
+                            skip_while(&mut data, |token| token != '\n');
+                            continue;
                         }
                     }
                     tokens.push(Token::new_char(TokenType::SLASH, c))
                 }
+                '"' => tokens.push(Token::new(TokenType::STRING, string(&mut data, line))),
                 '\n' => line += 1,
                 ' ' | '\r' | '\t' => continue,
                 unknown => {
@@ -106,13 +107,32 @@ fn skip_while(data: &mut Peekable<Chars>, predict: impl Fn(char) -> bool) {
     loop {
         if let Some(&next) = data.peek() {
             if !predict(next) {
-                break
+                break;
             }
             data.next();
         } else {
+            break;
+        }
+    }
+}
+
+fn string(data: &mut Peekable<Chars>, line: i32) -> String {
+    let mut string = String::new();
+    string.push('"');
+
+    loop {
+        if let Some(next) = data.next() {
+            string.push(next);
+            if next == '"' {
+                break
+            }
+        } else {
+            eprintln!("[line {}] Error: Unterminated string.", line);
             break
         }
     }
+
+    string
 }
 
 pub struct Token {
@@ -122,7 +142,6 @@ pub struct Token {
 }
 
 impl Token {
-
     pub fn new_char(_type: TokenType, _char: char) -> Self {
         Token {
             _type,
@@ -173,5 +192,6 @@ enum TokenType {
     GREATER,
     LESS_EQUAL,
     GREATER_EQUAL,
-    SLASH
+    SLASH,
+    STRING
 }
