@@ -201,7 +201,7 @@ fn identifier(current: char, data: &mut Peekable<Chars>) -> (TokenType, String) 
 
     loop {
         if let Some(&next) = data.peek() {
-            if next.is_ascii_alphanumeric() {
+            if next.is_ascii_alphanumeric() || next == '_' {
                 result.push(next);
                 data.next();
             } else {
