@@ -5,8 +5,8 @@ use std::iter::Peekable;
 use std::str::Chars;
 
 pub fn tokenize(filename: &String) -> i32 {
-    let file_contents = fs::read_to_string(filename).unwrap_or_else(|_| {
-        writeln!(io::stderr(), "Failed to read file {}", *filename).unwrap();
+    let file_contents = fs::read_to_string(filename).unwrap_or_else(|ex| {
+        writeln!(io::stderr(), "Failed to read file {}, ex: {}", *filename, ex).unwrap();
         String::new()
     });
 
@@ -167,7 +167,6 @@ enum TokenType {
     STAR,
     EQUAL,
     EQUAL_EQUAL,
-    EOF,
     BANG,
     BANG_EQUAL,
     LESS,
