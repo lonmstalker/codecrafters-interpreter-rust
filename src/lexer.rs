@@ -83,8 +83,13 @@ fn process_tokens(code: String) -> i32 {
                 '\n' => line += 1,
                 ' ' | '\r' | '\t' => continue,
                 unknown => {
-                    eprintln!("[line {}] Error: Unexpected character: {}", line, unknown);
-                    result = 65
+                    if c.is_numeric() {
+                        let num_result = number(c, &mut data);
+                        tokens.push(Token::new_content(TokenType::NUMBER, num_result.0, num_result.1));
+                    } else {
+                        eprintln!("[line {}] Error: Unexpected character: {}", line, unknown);
+                        result = 65
+                    }
                 }
             }
         }
@@ -144,6 +149,37 @@ fn string(data: &mut Peekable<Chars>, line: i32) -> (String, String, i32) {
     }
 
     (string, value, result)
+}
+
+fn number(current: char, data: &mut Peekable<Chars>) -> (String, String) {
+    let mut has_dot = false;
+    let mut value = String::new();
+    let mut number = String::new();
+
+    value.push(current);
+    number.push(current);
+
+    loop {
+        if let Some(&next) = data.peek() {
+            if next == '.' {
+                has_dot = true;
+            }
+            if !next.is_numeric() && next != '.'  {
+                break
+            }
+            value.push(next);
+            number.push(next);
+            data.next();
+        } else {
+            break
+        }
+    }
+
+    if !has_dot {
+        value.push_str(".0");
+    }
+
+    (number, value)
 }
 
 pub struct Token {
@@ -213,4 +249,5 @@ enum TokenType {
     GREATER_EQUAL,
     SLASH,
     STRING,
+    NUMBER
 }
