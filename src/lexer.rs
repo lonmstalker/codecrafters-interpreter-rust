@@ -67,10 +67,10 @@ fn process_tokens(code: String) -> i32 {
                     if let Some(&next) = data.peek() {
                         if next == '/' {
                            skip_while(&mut data, |token| token != '\n');
-                        } else {
-                            tokens.push(Token::new_char(TokenType::SLASH, c))
+                            continue
                         }
                     }
+                    tokens.push(Token::new_char(TokenType::SLASH, c))
                 }
                 '\n' => line += 1,
                 ' ' | '\r' | '\t' => continue,
