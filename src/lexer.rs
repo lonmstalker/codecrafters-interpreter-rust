@@ -73,8 +73,12 @@ fn process_tokens(code: String) -> i32 {
                     tokens.push(Token::new_char(TokenType::SLASH, c))
                 }
                 '"' => {
-                    let result = string(&mut data, line);
-                    tokens.push(Token::new_content(TokenType::STRING, result.0, result.1))
+                    let string_res = string(&mut data, line);
+                    tokens.push(Token::new_content(TokenType::STRING, string_res.0, string_res.1));
+
+                    if string_res.2 != 0 {
+                        result = string_res.2;
+                    }
                 }
                 '\n' => line += 1,
                 ' ' | '\r' | '\t' => continue,
@@ -119,7 +123,8 @@ fn skip_while(data: &mut Peekable<Chars>, predict: impl Fn(char) -> bool) {
     }
 }
 
-fn string(data: &mut Peekable<Chars>, line: i32) -> (String, String) {
+fn string(data: &mut Peekable<Chars>, line: i32) -> (String, String, i32) {
+    let mut result = 0;
     let mut value = String::new();
     let mut string = String::new();
     string.push('"');
@@ -133,11 +138,12 @@ fn string(data: &mut Peekable<Chars>, line: i32) -> (String, String) {
             value.push(next);
         } else {
             eprintln!("[line {}] Error: Unterminated string.", line);
+            result = 65;
             break;
         }
     }
 
-    (string, value)
+    (string, value, result)
 }
 
 pub struct Token {
