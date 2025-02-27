@@ -63,7 +63,6 @@ fn process_tokens(code: String) -> i32 {
                                                 || Token::new_char(TokenType::GREATER, c));
                     tokens.push(token)
                 }
-                '\n' => line += 1,
                 '/' => {
                     if let Some(&next) = data.peek() {
                         if next == '/' {
@@ -73,6 +72,8 @@ fn process_tokens(code: String) -> i32 {
                         }
                     }
                 }
+                '\n' => line += 1,
+                ' ' | '\r' | '\t' => continue,
                 unknown => {
                     eprintln!("[line {}] Error: Unexpected character: {}", line, unknown);
                     result = 65
@@ -108,6 +109,8 @@ fn skip_while(data: &mut Peekable<Chars>, predict: impl Fn(char) -> bool) {
                 break
             }
             data.next();
+        } else {
+            break
         }
     }
 }
