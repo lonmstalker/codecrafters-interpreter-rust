@@ -1,6 +1,8 @@
 use std::{fs, io};
 use std::fmt::Display;
 use std::io::Write;
+use std::iter::Peekable;
+use std::str::Chars;
 
 pub fn tokenize(filename: &String) -> i32 {
     let file_contents = fs::read_to_string(filename).unwrap_or_else(|_| {
@@ -34,29 +36,32 @@ fn process_tokens(code: String) -> i32 {
                 ';' => tokens.push(Token::new(TokenType::SEMICOLON, c.to_string())),
                 '*' => tokens.push(Token::new(TokenType::STAR, c.to_string())),
                 '=' => {
-                    let next = data.peek();
-
-                    if next.is_some() && *next.unwrap() == '=' {
-                        tokens.push(Token::new(TokenType::EQUAL_EQUAL, "==".to_string()));
-                        data.next();
-                    } else {
-                        tokens.push(Token::new(TokenType::EQUAL, c.to_string()));
-                    }
-
+                    let token = composite_token(&mut data,
+                                                '=',
+                                                || Token::new(TokenType::EQUAL_EQUAL, "==".to_string()),
+                                                || Token::new(TokenType::EQUAL, c.to_string()));
+                    tokens.push(token)
                 }
                 '!' => {
-                    let next = data.peek();
-                    
-                    if next.is_some() {
-                        let next_data = *next.unwrap();
-                        if next_data == '=' {
-                            tokens.push(Token::new(TokenType::BANG_EQUAL, "!=".to_string()));
-                            data.next();
-                            continue;
-                        }
-                    }
-
-                    tokens.push(Token::new(TokenType::BANG, c.to_string()));
+                    let token = composite_token(&mut data,
+                                                '=',
+                                                || Token::new(TokenType::BANG_EQUAL, "!=".to_string()),
+                                                || Token::new(TokenType::BANG, c.to_string()));
+                    tokens.push(token)
+                }
+                '<' => {
+                    let token = composite_token(&mut data,
+                                                '=',
+                                                || Token::new(TokenType::LESS_EQUAL, "<=".to_string()),
+                                                || Token::new(TokenType::LESS, c.to_string()));
+                    tokens.push(token)
+                }
+                '>' => {
+                    let token = composite_token(&mut data,
+                                                '=',
+                                                || Token::new(TokenType::GREATER_EQUAL, ">=".to_string()),
+                                                || Token::new(TokenType::GREATER, c.to_string()));
+                    tokens.push(token)
                 }
                 '\n' => line += 1,
                 unknown => {
@@ -72,6 +77,19 @@ fn process_tokens(code: String) -> i32 {
     }
 
     result
+}
+
+fn composite_token(data: &mut Peekable<Chars>,
+                   next_char: char,
+                   then_func: impl FnOnce() -> Token,
+                   else_func: impl FnOnce() -> Token) -> Token {
+    if let Some(&next) = data.peek() {
+        if next == next_char {
+            data.next();
+            return then_func();
+        }
+    }
+    else_func()
 }
 
 pub struct Token {
@@ -121,4 +139,8 @@ enum TokenType {
     EOF,
     BANG,
     BANG_EQUAL,
+    LESS,
+    GREATER,
+    LESS_EQUAL,
+    GREATER_EQUAL,
 }
