@@ -1,8 +1,10 @@
 use std::{fs, io};
+use std::collections::HashMap;
 use std::fmt::Display;
 use std::io::Write;
 use std::iter::Peekable;
 use std::str::Chars;
+use lazy_static::lazy_static;
 
 pub fn tokenize(filename: &String) -> i32 {
     let file_contents = fs::read_to_string(filename).unwrap_or_else(|ex| {
@@ -203,14 +205,38 @@ fn identifier(current: char, data: &mut Peekable<Chars>) -> (TokenType, String) 
                 result.push(next);
                 data.next();
             } else {
-                break
+                break;
             }
         } else {
-            break
+            break;
         }
     }
 
-    (TokenType::IDENTIFIER, result)
+    match KEYWORDS.get(&result.as_str()) {
+        None => (TokenType::IDENTIFIER, result),
+        Some(keyword) => (keyword.clone(), result)
+    }
+}
+
+lazy_static! {
+    static ref KEYWORDS: HashMap<&'static str, TokenType> = HashMap::from([
+                ("and", TokenType::AND),
+                ("class", TokenType::CLASS),
+                ("else", TokenType::ELSE),
+                ("false", TokenType::FALSE),
+                ("for", TokenType::FOR),
+                ("fun", TokenType::FUN),
+                ("if", TokenType::IF),
+                ("nil", TokenType::NIL),
+                ("or", TokenType::OR),
+                ("print", TokenType::PRINT),
+                ("return", TokenType::RETURN),
+                ("super", TokenType::SUPER),
+                ("this", TokenType::THIS),
+                ("true", TokenType::TRUE),
+                ("var", TokenType::VAR),
+                ("while", TokenType::WHILE),
+            ]);
 }
 
 pub struct Token {
@@ -257,7 +283,7 @@ impl Display for Token {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[allow(non_camel_case_types)]
 enum TokenType {
     LEFT_PAREN,
@@ -281,5 +307,21 @@ enum TokenType {
     SLASH,
     STRING,
     NUMBER,
-    IDENTIFIER
+    IDENTIFIER,
+    AND,
+    CLASS,
+    ELSE,
+    FALSE,
+    FOR,
+    FUN,
+    IF,
+    NIL,
+    OR,
+    PRINT,
+    RETURN,
+    SUPER,
+    THIS,
+    TRUE,
+    VAR,
+    WHILE,
 }
