@@ -72,7 +72,10 @@ fn process_tokens(code: String) -> i32 {
                     }
                     tokens.push(Token::new_char(TokenType::SLASH, c))
                 }
-                '"' => tokens.push(Token::new(TokenType::STRING, string(&mut data, line))),
+                '"' => {
+                    let result = string(&mut data, line);
+                    tokens.push(Token::new_content(TokenType::STRING, result.0, result.1))
+                }
                 '\n' => line += 1,
                 ' ' | '\r' | '\t' => continue,
                 unknown => {
@@ -84,7 +87,7 @@ fn process_tokens(code: String) -> i32 {
     }
 
     for token in tokens {
-        println!("{:?} {} null", token._type, token._string)
+        println!("{}", token)
     }
 
     result
@@ -116,7 +119,8 @@ fn skip_while(data: &mut Peekable<Chars>, predict: impl Fn(char) -> bool) {
     }
 }
 
-fn string(data: &mut Peekable<Chars>, line: i32) -> String {
+fn string(data: &mut Peekable<Chars>, line: i32) -> (String, String) {
+    let mut value = String::new();
     let mut string = String::new();
     string.push('"');
 
@@ -124,15 +128,16 @@ fn string(data: &mut Peekable<Chars>, line: i32) -> String {
         if let Some(next) = data.next() {
             string.push(next);
             if next == '"' {
-                break
+                break;
             }
+            value.push(next);
         } else {
             eprintln!("[line {}] Error: Unterminated string.", line);
-            break
+            break;
         }
     }
 
-    string
+    (string, value)
 }
 
 pub struct Token {
@@ -147,6 +152,14 @@ impl Token {
             _type,
             _value: None,
             _string: _char.to_string(),
+        }
+    }
+
+    pub fn new_content(_type: TokenType, _string: String, _value: String) -> Self {
+        Token {
+            _type,
+            _string,
+            _value: Some(_value),
         }
     }
 
@@ -193,5 +206,5 @@ enum TokenType {
     LESS_EQUAL,
     GREATER_EQUAL,
     SLASH,
-    STRING
+    STRING,
 }
