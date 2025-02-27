@@ -82,12 +82,15 @@ fn process_tokens(code: String) -> i32 {
                 }
                 '\n' => line += 1,
                 ' ' | '\r' | '\t' => continue,
-                unknown => {
+                _ => {
                     if c.is_numeric() {
                         let num_result = number(c, &mut data);
                         tokens.push(Token::new_content(TokenType::NUMBER, num_result.0, num_result.1));
+                    } else if c.is_ascii_alphabetic() || c == '_' {
+                        let identifier_res = identifier(c, &mut data);
+                        tokens.push(Token::new(identifier_res.0, identifier_res.1));
                     } else {
-                        eprintln!("[line {}] Error: Unexpected character: {}", line, unknown);
+                        eprintln!("[line {}] Error: Unexpected character: {}", line, c);
                         result = 65
                     }
                 }
@@ -191,6 +194,25 @@ fn number(current: char, data: &mut Peekable<Chars>) -> (String, String) {
     (number, value)
 }
 
+fn identifier(current: char, data: &mut Peekable<Chars>) -> (TokenType, String) {
+    let mut result = String::from(current);
+
+    loop {
+        if let Some(&next) = data.peek() {
+            if next.is_ascii_alphanumeric() {
+                result.push(next);
+                data.next();
+            } else {
+                break
+            }
+        } else {
+            break
+        }
+    }
+
+    (TokenType::IDENTIFIER, result)
+}
+
 pub struct Token {
     _type: TokenType,
     _string: String,
@@ -259,4 +281,5 @@ enum TokenType {
     SLASH,
     STRING,
     NUMBER,
+    IDENTIFIER
 }
