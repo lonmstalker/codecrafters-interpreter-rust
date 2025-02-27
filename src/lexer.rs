@@ -25,45 +25,54 @@ fn process_tokens(code: String) -> i32 {
     if !code.is_empty() {
         while let Some(c) = data.next() {
             match c {
-                '(' => tokens.push(Token::new(TokenType::LEFT_PAREN, c.to_string())),
-                ')' => tokens.push(Token::new(TokenType::RIGHT_PAREN, c.to_string())),
-                '{' => tokens.push(Token::new(TokenType::LEFT_BRACE, c.to_string())),
-                '}' => tokens.push(Token::new(TokenType::RIGHT_BRACE, c.to_string())),
-                ',' => tokens.push(Token::new(TokenType::COMMA, c.to_string())),
-                '.' => tokens.push(Token::new(TokenType::DOT, c.to_string())),
-                '+' => tokens.push(Token::new(TokenType::PLUS, c.to_string())),
-                '-' => tokens.push(Token::new(TokenType::MINUS, c.to_string())),
-                ';' => tokens.push(Token::new(TokenType::SEMICOLON, c.to_string())),
-                '*' => tokens.push(Token::new(TokenType::STAR, c.to_string())),
+                '(' => tokens.push(Token::new_char(TokenType::LEFT_PAREN, c)),
+                ')' => tokens.push(Token::new_char(TokenType::RIGHT_PAREN, c)),
+                '{' => tokens.push(Token::new_char(TokenType::LEFT_BRACE, c)),
+                '}' => tokens.push(Token::new_char(TokenType::RIGHT_BRACE, c)),
+                ',' => tokens.push(Token::new_char(TokenType::COMMA, c)),
+                '.' => tokens.push(Token::new_char(TokenType::DOT, c)),
+                '+' => tokens.push(Token::new_char(TokenType::PLUS, c)),
+                '-' => tokens.push(Token::new_char(TokenType::MINUS, c)),
+                ';' => tokens.push(Token::new_char(TokenType::SEMICOLON, c)),
+                '*' => tokens.push(Token::new_char(TokenType::STAR, c)),
                 '=' => {
                     let token = composite_token(&mut data,
                                                 '=',
                                                 || Token::new(TokenType::EQUAL_EQUAL, "==".to_string()),
-                                                || Token::new(TokenType::EQUAL, c.to_string()));
+                                                || Token::new_char(TokenType::EQUAL, c));
                     tokens.push(token)
                 }
                 '!' => {
                     let token = composite_token(&mut data,
                                                 '=',
                                                 || Token::new(TokenType::BANG_EQUAL, "!=".to_string()),
-                                                || Token::new(TokenType::BANG, c.to_string()));
+                                                || Token::new_char(TokenType::BANG, c));
                     tokens.push(token)
                 }
                 '<' => {
                     let token = composite_token(&mut data,
                                                 '=',
                                                 || Token::new(TokenType::LESS_EQUAL, "<=".to_string()),
-                                                || Token::new(TokenType::LESS, c.to_string()));
+                                                || Token::new_char(TokenType::LESS, c));
                     tokens.push(token)
                 }
                 '>' => {
                     let token = composite_token(&mut data,
                                                 '=',
                                                 || Token::new(TokenType::GREATER_EQUAL, ">=".to_string()),
-                                                || Token::new(TokenType::GREATER, c.to_string()));
+                                                || Token::new_char(TokenType::GREATER, c));
                     tokens.push(token)
                 }
                 '\n' => line += 1,
+                '/' => {
+                    if let Some(&next) = data.peek() {
+                        if next == '/' {
+                           skip_while(&mut data, |token| token != '\n');
+                        } else {
+                            tokens.push(Token::new_char(TokenType::SLASH, c))
+                        }
+                    }
+                }
                 unknown => {
                     eprintln!("[line {}] Error: Unexpected character: {}", line, unknown);
                     result = 65
@@ -92,6 +101,17 @@ fn composite_token(data: &mut Peekable<Chars>,
     else_func()
 }
 
+fn skip_while(data: &mut Peekable<Chars>, predict: impl Fn(char) -> bool) {
+    loop {
+        if let Some(&next) = data.peek() {
+            if !predict(next) {
+                break
+            }
+            data.next();
+        }
+    }
+}
+
 pub struct Token {
     _type: TokenType,
     _string: String,
@@ -99,6 +119,15 @@ pub struct Token {
 }
 
 impl Token {
+
+    pub fn new_char(_type: TokenType, _char: char) -> Self {
+        Token {
+            _type,
+            _value: None,
+            _string: _char.to_string(),
+        }
+    }
+
     pub fn new(_type: TokenType, _string: String) -> Self {
         Token {
             _type,
@@ -133,7 +162,6 @@ enum TokenType {
     PLUS,
     SEMICOLON,
     STAR,
-    FOWARD_SLASH,
     EQUAL,
     EQUAL_EQUAL,
     EOF,
@@ -143,4 +171,5 @@ enum TokenType {
     GREATER,
     LESS_EQUAL,
     GREATER_EQUAL,
+    SLASH
 }
