@@ -74,10 +74,10 @@ fn process_tokens(code: String) -> i32 {
                 }
                 '"' => {
                     let string_res = string(&mut data, line);
-                    tokens.push(Token::new_content(TokenType::STRING, string_res.0, string_res.1));
-
                     if string_res.2 != 0 {
                         result = string_res.2;
+                    } else {
+                        tokens.push(Token::new_content(TokenType::STRING, string_res.0, string_res.1));
                     }
                 }
                 '\n' => line += 1,
