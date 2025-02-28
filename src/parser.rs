@@ -94,7 +94,7 @@ fn unary(parser: &Parser) -> Result<Expr, ParserError> {
 /// literal -> string, number, boolean, nil, (, )
 fn primary(parser: &Parser) -> Result<Expr, ParserError> {
     if let Some(keyword) = parser.match_keyword() {
-        return Ok(Expr::Literal(keyword.0.to_string().to_string(), keyword.1.clone()));
+        return Ok(Expr::Literal(keyword.0.to_string().to_lowercase(), keyword.1.clone()));
     }
     if parser.match_token(TokenType::STRING) {
         get_or_ex_value("string invalid", parser, |val, token| Expr::Literal(val, token))

@@ -143,7 +143,7 @@ mod test_parser {
         match ast.expr {
             Expr::Literal(val, token) => {
                 assert_eq!(TokenType::KEYWORD(KeywordType::TRUE), token._type);
-                assert_eq!("TRUE", val);
+                assert_eq!("true", val);
             }
             _ => assert!(false, "invalid type main")
         }
