@@ -98,7 +98,7 @@ fn primary(parser: &Parser) -> Result<Expr, ParserError> {
     } else if parser.match_token(TokenType::KEYWORD(KeywordType::TRUE)) {
         get_or_ex_value("true invalid", parser, |_, token| Expr::Literal("true".to_string(), token))
     } else if parser.match_token(TokenType::KEYWORD(KeywordType::NIL)) {
-        get_or_ex_value("null invalid", parser, |_, token| Expr::Literal("null".to_string(), token))
+        get_or_ex_value("null invalid", parser, |_, token| Expr::Literal("nil".to_string(), token))
     } else if parser.match_token(TokenType::STRING) {
         get_or_ex_value("string invalid", parser, |val, token| Expr::Literal(val, token))
     } else if parser.match_token(TokenType::NUMBER) {
