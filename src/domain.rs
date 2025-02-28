@@ -15,7 +15,7 @@ pub struct Tokens {
 pub enum Expr {
     Unary(Token, Box<Expr>),
     Binary(Box<Expr>, Token, Box<Expr>),
-    Literal(String),
+    Literal(String, Token),
     Grouping(Box<Expr>),
 }
 
@@ -75,7 +75,7 @@ impl Display for Expr {
         match self {
             Expr::Unary(token, right) => write!(f, "{} {}", token, right),
             Expr::Binary(left, token, right) => write!(f, "{} {} {}", left, token, right),
-            Expr::Literal(literal) => write!(f, "{}", literal),
+            Expr::Literal(literal, _) => write!(f, "{}", literal),
             Expr::Grouping(literal) => write!(f, "{}", literal)
         }
     }

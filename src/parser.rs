@@ -1,6 +1,7 @@
 use crate::domain::TokenType::{BANG_EQUAL, EQUAL_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL};
 use crate::domain::{Expr, KeywordType, ParserError, Token, TokenType, Tokens, AST, ParserError::Default};
 use std::cell::Cell;
+use std::env::var;
 use std::rc::Rc;
 
 /// priority top-down
@@ -93,15 +94,15 @@ fn unary(parser: &Parser) -> Result<Expr, ParserError> {
 /// literal -> string, number, boolean, nil, (, )
 fn primary(parser: &Parser) -> Result<Expr, ParserError> {
     if parser.match_token(TokenType::KEYWORD(KeywordType::FALSE)) {
-        get_or_ex_value("false invalid", parser, |_| Expr::Literal("false".to_string()))
+        get_or_ex_value("false invalid", parser, |_, token| Expr::Literal("false".to_string(), token))
     } else if parser.match_token(TokenType::KEYWORD(KeywordType::TRUE)) {
-        get_or_ex_value("true invalid", parser, |_| Expr::Literal("true".to_string()))
+        get_or_ex_value("true invalid", parser, |_, token| Expr::Literal("true".to_string(), token))
     } else if parser.match_token(TokenType::KEYWORD(KeywordType::NIL)) {
-        get_or_ex_value("null invalid", parser, |_| Expr::Literal("null".to_string()))
+        get_or_ex_value("null invalid", parser, |_, token| Expr::Literal("null".to_string(), token))
     } else if parser.match_token(TokenType::STRING) {
-        get_or_ex_value("string invalid", parser, |val| Expr::Literal(val))
+        get_or_ex_value("string invalid", parser, |val, token| Expr::Literal(val, token))
     } else if parser.match_token(TokenType::NUMBER) {
-        get_or_ex_value("number invalid", parser, |val| Expr::Literal(val))
+        get_or_ex_value("number invalid", parser, |val, token| Expr::Literal(val, token))
     } else if parser.match_token(TokenType::LEFT_PAREN) {
         let expr = expression(parser)?;
         parser.consume(TokenType::LEFT_PAREN, "Expect ')' after expression.")?;
@@ -113,17 +114,15 @@ fn primary(parser: &Parser) -> Result<Expr, ParserError> {
     }
 }
 
-fn get_or_ex_value(message: &str, parser: &Parser, convert: impl FnOnce(String) -> Expr) -> Result<Expr, ParserError> {
+fn get_or_ex_value(message: &str, parser: &Parser, convert: impl FnOnce(String, Token) -> Expr) -> Result<Expr, ParserError> {
     match parser.previous() {
         None => Err(Default(message.to_string(),
                             parser.peek().expect("token not found").clone(),
                             65)),
         Some(result) => {
             match &result._value {
-                None => Err(Default(message.to_string(),
-                                    parser.previous().expect("token not found").clone(),
-                                    65)),
-                Some(value) => Ok(convert(value.clone()))
+                None => Ok(convert("".to_string(), result.clone())),
+                Some(value) => Ok(convert(value.clone(), result.clone()))
             }
         }
     }

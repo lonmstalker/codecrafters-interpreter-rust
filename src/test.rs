@@ -87,7 +87,7 @@ mod test_lexer {
 
 #[cfg(test)]
 mod test_parser {
-    use crate::domain::{Expr, TokenType};
+    use crate::domain::{Expr, KeywordType, TokenType};
     use crate::test::parse_tokens;
 
     #[test]
@@ -112,14 +112,38 @@ mod test_parser {
                 let right_val = &*right;
 
                 match *left {
-                    Expr::Literal(val) => assert_eq!("2.0", val),
+                    Expr::Literal(val, _) => assert_eq!("2.0", val),
                     _ => assert!(false, "invalid type left")
                 }
 
                 match *right {
-                    Expr::Literal(val) => assert_eq!("2.0", val),
+                    Expr::Literal(val, _) => assert_eq!("2.0", val),
                     _ => assert!(false, "invalid type right")
                 }
+            }
+            _ => assert!(false, "invalid type main")
+        }
+    }
+
+    #[test]
+    fn test_true_parser() {
+
+        // given:
+        let code = "true";
+
+        // when:
+        let ast_result = parse_tokens(code.to_string());
+
+        // then:
+        println!("{:?}", ast_result);
+        assert!(ast_result.is_ok());
+
+        let ast = ast_result.unwrap();
+
+        match ast.expr {
+            Expr::Literal(val, token) => {
+                assert_eq!(TokenType::KEYWORD(KeywordType::TRUE), token._type);
+                assert_eq!("true", val);
             }
             _ => assert!(false, "invalid type main")
         }
