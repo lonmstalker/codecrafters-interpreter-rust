@@ -148,10 +148,36 @@ mod test_parser {
             _ => assert!(false, "invalid type main")
         }
     }
+
+    #[test]
+    fn test_while_parser() {
+
+        // given:
+        let code = "while";
+
+        // when:
+        let ast_result = parse_tokens(code.to_string());
+
+        // then:
+        println!("{:?}", ast_result);
+        assert!(ast_result.is_ok());
+
+        let ast = ast_result.unwrap();
+
+        match ast.expr {
+            Expr::Literal(val, token) => {
+                assert_eq!(TokenType::KEYWORD(KeywordType::WHILE), token._type);
+                assert_eq!("while", val);
+            }
+            _ => assert!(false, "invalid type main")
+        }
+    }
 }
 
 fn parse_tokens(code: String) -> Result<AST, ParserError> {
-    parse(generate_tokens(code))
+    let tokens = generate_tokens(code);
+    println!("{:?}", tokens);
+    parse(tokens)
 }
 
 fn generate_tokens(code: String) -> Tokens {
