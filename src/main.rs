@@ -1,24 +1,50 @@
 mod lexer;
+mod parser;
+mod domain;
+mod test;
 
 use std::env;
 use std::io::{self, Write};
-use std::process::exit;
+use std::process::ExitCode;
 
-fn main() {
+fn main() -> ExitCode {
     let args: Vec<String> = env::args().collect();
     if args.len() < 3 {
         writeln!(io::stderr(), "Usage: {} tokenize <filename>", args[0]).unwrap();
-        return;
+        return ExitCode::SUCCESS;
     }
 
     let command = &args[1];
     let filename = &args[2];
 
     match command.as_str() {
-        "tokenize" => { exit(lexer::tokenize(filename)) }
+        "tokenize" => {
+            let result = lexer::tokenize(filename);
+            for x in result.tokens {
+                println!("{}", x);
+            }
+            return result.code;
+        }
+        "parse" => {
+            let result = lexer::tokenize(filename);
+            if result.code != ExitCode::SUCCESS {
+                return result.code;
+            }
+            match parser::parse(result) {
+                Ok(ast) => {
+                    println!("{}", ast.expr);
+                }
+                Err(e) => {
+                    if let domain::ParserError::Default(_, _, code) = e {
+                        return code;
+                    }
+                }
+            }
+        }
         _ => {
             writeln!(io::stderr(), "Unknown command: {}", command).unwrap();
-            0
         }
     };
+
+    ExitCode::SUCCESS
 }

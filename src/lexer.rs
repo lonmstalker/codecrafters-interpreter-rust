@@ -1,123 +1,135 @@
-use std::{fs, io};
+use crate::domain::{KeywordType, Token, TokenType, Tokens};
+use lazy_static::lazy_static;
 use std::collections::HashMap;
-use std::fmt::Display;
 use std::io::Write;
 use std::iter::Peekable;
+use std::process::ExitCode;
 use std::str::Chars;
-use lazy_static::lazy_static;
+use std::{fs, io};
 
-pub fn tokenize(filename: &String) -> i32 {
+pub fn tokenize_code(code: String) -> Tokens {
+    process_tokens(code)
+}
+
+pub fn tokenize(filename: &String) -> Tokens {
     let file_contents = fs::read_to_string(filename).unwrap_or_else(|ex| {
         writeln!(io::stderr(), "Failed to read file {}, ex: {}", *filename, ex).unwrap();
         String::new()
     });
 
-    let result = process_tokens(file_contents);
-    println!("EOF  null");
-
-    result
+    process_tokens(file_contents)
 }
 
-fn process_tokens(code: String) -> i32 {
+fn process_tokens(code: String) -> Tokens {
     let mut line = 1;
-    let mut result = 0;
+    let mut col = 0;
+
+    let mut result = ExitCode::SUCCESS;
     let mut tokens = Vec::new();
     let mut data = code.chars().peekable();
 
     if !code.is_empty() {
         while let Some(c) = data.next() {
+            col += 1;
             match c {
-                '(' => tokens.push(Token::new_char(TokenType::LEFT_PAREN, c)),
-                ')' => tokens.push(Token::new_char(TokenType::RIGHT_PAREN, c)),
-                '{' => tokens.push(Token::new_char(TokenType::LEFT_BRACE, c)),
-                '}' => tokens.push(Token::new_char(TokenType::RIGHT_BRACE, c)),
-                ',' => tokens.push(Token::new_char(TokenType::COMMA, c)),
-                '.' => tokens.push(Token::new_char(TokenType::DOT, c)),
-                '+' => tokens.push(Token::new_char(TokenType::PLUS, c)),
-                '-' => tokens.push(Token::new_char(TokenType::MINUS, c)),
-                ';' => tokens.push(Token::new_char(TokenType::SEMICOLON, c)),
-                '*' => tokens.push(Token::new_char(TokenType::STAR, c)),
+                '(' => tokens.push(Token::new_char(TokenType::LEFT_PAREN, c, line, col)),
+                ')' => tokens.push(Token::new_char(TokenType::RIGHT_PAREN, c, line, col)),
+                '{' => tokens.push(Token::new_char(TokenType::LEFT_BRACE, c, line, col)),
+                '}' => tokens.push(Token::new_char(TokenType::RIGHT_BRACE, c, line, col)),
+                ',' => tokens.push(Token::new_char(TokenType::COMMA, c, line, col)),
+                '.' => tokens.push(Token::new_char(TokenType::DOT, c, line, col)),
+                '+' => tokens.push(Token::new_char(TokenType::PLUS, c, line, col)),
+                '-' => tokens.push(Token::new_char(TokenType::MINUS, c, line, col)),
+                ';' => tokens.push(Token::new_char(TokenType::SEMICOLON, c, line, col)),
+                '*' => tokens.push(Token::new_char(TokenType::STAR, c, line, col)),
                 '=' => {
-                    let token = composite_token(&mut data,
-                                                '=',
-                                                || Token::new(TokenType::EQUAL_EQUAL, "==".to_string()),
-                                                || Token::new_char(TokenType::EQUAL, c));
-                    tokens.push(token)
+                    let (_type, string, cur_col) =
+                        composite_token(&mut data, '=', '=', col, TokenType::EQUAL_EQUAL, TokenType::EQUAL);
+                    tokens.push(Token::new(_type, string, line, col, cur_col))
                 }
                 '!' => {
-                    let token = composite_token(&mut data,
-                                                '=',
-                                                || Token::new(TokenType::BANG_EQUAL, "!=".to_string()),
-                                                || Token::new_char(TokenType::BANG, c));
-                    tokens.push(token)
+                    let (_type, string, cur_col) =
+                        composite_token(&mut data, '!', '=', col, TokenType::BANG_EQUAL, TokenType::BANG);
+                    tokens.push(Token::new(_type, string, line, col, cur_col))
                 }
                 '<' => {
-                    let token = composite_token(&mut data,
-                                                '=',
-                                                || Token::new(TokenType::LESS_EQUAL, "<=".to_string()),
-                                                || Token::new_char(TokenType::LESS, c));
-                    tokens.push(token)
+                    let (_type, string, cur_col) =
+                        composite_token(&mut data, '<', '=', col, TokenType::LESS_EQUAL, TokenType::LESS);
+                    tokens.push(Token::new(_type, string, line, col, cur_col))
                 }
                 '>' => {
-                    let token = composite_token(&mut data,
-                                                '=',
-                                                || Token::new(TokenType::GREATER_EQUAL, ">=".to_string()),
-                                                || Token::new_char(TokenType::GREATER, c));
-                    tokens.push(token)
+                    let (_type, string, cur_col) =
+                        composite_token(&mut data, '>', '=', col, TokenType::GREATER_EQUAL, TokenType::GREATER);
+                    tokens.push(Token::new(_type, string, line, col, cur_col))
                 }
                 '/' => {
                     if let Some(&next) = data.peek() {
                         if next == '/' {
                             skip_while(&mut data, |token| token != '\n');
+                            line += 1;
                             continue;
                         }
                     }
-                    tokens.push(Token::new_char(TokenType::SLASH, c))
+                    tokens.push(Token::new_char(TokenType::SLASH, c, line, col))
                 }
                 '"' => {
-                    let string_res = string(&mut data, line);
-                    if string_res.2 != 0 {
+                    let string_res = string(&mut data, line, col);
+                    if string_res.2 != ExitCode::SUCCESS {
                         result = string_res.2;
                     } else {
-                        tokens.push(Token::new_content(TokenType::STRING, string_res.0, string_res.1));
+                        let cur_col = col;
+                        col = string_res.3;
+                        tokens.push(Token::new_content(TokenType::STRING, string_res.0, string_res.1, line, cur_col, col));
                     }
                 }
-                '\n' => line += 1,
+                '\n' => {
+                    line += 1;
+                    col = 1;
+                }
                 ' ' | '\r' | '\t' => continue,
                 _ => {
-                    if c.is_numeric() {
-                        let num_result = number(c, &mut data);
-                        tokens.push(Token::new_content(TokenType::NUMBER, num_result.0, num_result.1));
-                    } else if c.is_ascii_alphabetic() || c == '_' {
-                        let identifier_res = identifier(c, &mut data);
-                        tokens.push(Token::new(identifier_res.0, identifier_res.1));
+                    // сперва строка, тк 6bz - 6 может распознаться как число, а bz отдельно identifier
+                    if c.is_ascii_alphabetic() || c == '_' {
+
+                        let identifier_res = identifier(c, &mut data, col);
+                        let cur_col = col;
+                        col = identifier_res.2;
+                        tokens.push(Token::new(identifier_res.0, identifier_res.1, line, cur_col, col));
+                    } else if c.is_numeric() {
+
+                        let num_result = number(c, &mut data, col);
+                        let cur_col = col;
+                        col = num_result.2;
+                        tokens.push(Token::new_content(TokenType::NUMBER, num_result.0, num_result.1, line, cur_col, col));
                     } else {
+
                         eprintln!("[line {}] Error: Unexpected character: {}", line, c);
-                        result = 65
+                        result = ExitCode::from(65)
                     }
                 }
             }
         }
     }
 
-    for token in tokens {
-        println!("{}", token)
-    }
+    tokens.push(Token::new(TokenType::EOF, String::new(), line, col, col));
 
-    result
+    Tokens { tokens, code : result }
 }
 
 fn composite_token(data: &mut Peekable<Chars>,
+                   current_char: char,
                    next_char: char,
-                   then_func: impl FnOnce() -> Token,
-                   else_func: impl FnOnce() -> Token) -> Token {
+                   column: i32,
+                   then_token: TokenType,
+                   else_token: TokenType) -> (TokenType, String, i32) {
     if let Some(&next) = data.peek() {
         if next == next_char {
-            data.next();
-            return then_func();
+            let mut result = String::from(next_char);
+            result.push(data.next().unwrap());
+            return (then_token, result, column + 1);
         }
     }
-    else_func()
+    (else_token, String::from(current_char), column + 1)
 }
 
 fn skip_while(data: &mut Peekable<Chars>, predict: impl Fn(char) -> bool) {
@@ -133,13 +145,15 @@ fn skip_while(data: &mut Peekable<Chars>, predict: impl Fn(char) -> bool) {
     }
 }
 
-fn string(data: &mut Peekable<Chars>, line: i32) -> (String, String, i32) {
-    let mut result = 0;
+fn string(data: &mut Peekable<Chars>, line: i32, col: i32) -> (String, String, ExitCode, i32) {
+    let mut col = col;
+    let mut result = ExitCode::SUCCESS;
     let mut value = String::new();
     let mut string = String::from('"');
 
     loop {
         if let Some(next) = data.next() {
+            col += 1;
             string.push(next);
             if next == '"' {
                 break;
@@ -147,16 +161,18 @@ fn string(data: &mut Peekable<Chars>, line: i32) -> (String, String, i32) {
             value.push(next);
         } else {
             eprintln!("[line {}] Error: Unterminated string.", line);
-            result = 65;
+            result = ExitCode::from(65);
             break;
         }
     }
 
-    (string, value, result)
+    (string, value, result, col)
 }
 
-fn number(current: char, data: &mut Peekable<Chars>) -> (String, String) {
+fn number(current: char, data: &mut Peekable<Chars>, col: i32) -> (String, String, i32) {
+    let mut col = col;
     let mut dot_index: i32 = -1;
+
     let mut value = String::from(current);
     let mut number = String::from(current);
 
@@ -166,6 +182,7 @@ fn number(current: char, data: &mut Peekable<Chars>) -> (String, String) {
                 break;
             }
 
+            col += 1;
             value.push(next);
             number.push(next);
 
@@ -193,15 +210,17 @@ fn number(current: char, data: &mut Peekable<Chars>) -> (String, String) {
         value.truncate(len);
     }
 
-    (number, value)
+    (number, value, col)
 }
 
-fn identifier(current: char, data: &mut Peekable<Chars>) -> (TokenType, String) {
+fn identifier(current: char, data: &mut Peekable<Chars>, col: i32) -> (TokenType, String, i32) {
+    let mut col = col;
     let mut result = String::from(current);
 
     loop {
         if let Some(&next) = data.peek() {
-            if next.is_ascii_alphanumeric() || next == '_' {
+            if next.is_ascii_alphanumeric() || next == '_' || next.is_numeric() {
+                col += 1;
                 result.push(next);
                 data.next();
             } else {
@@ -213,115 +232,28 @@ fn identifier(current: char, data: &mut Peekable<Chars>) -> (TokenType, String) 
     }
 
     match KEYWORDS.get(&result.as_str()) {
-        None => (TokenType::IDENTIFIER, result),
-        Some(keyword) => (keyword.clone(), result)
+        None => (TokenType::IDENTIFIER, result, col),
+        Some(keyword) => (TokenType::KEYWORD(keyword.clone()), result, col)
     }
 }
 
 lazy_static! {
-    static ref KEYWORDS: HashMap<&'static str, TokenType> = HashMap::from([
-                ("and", TokenType::AND),
-                ("class", TokenType::CLASS),
-                ("else", TokenType::ELSE),
-                ("false", TokenType::FALSE),
-                ("for", TokenType::FOR),
-                ("fun", TokenType::FUN),
-                ("if", TokenType::IF),
-                ("nil", TokenType::NIL),
-                ("or", TokenType::OR),
-                ("print", TokenType::PRINT),
-                ("return", TokenType::RETURN),
-                ("super", TokenType::SUPER),
-                ("this", TokenType::THIS),
-                ("true", TokenType::TRUE),
-                ("var", TokenType::VAR),
-                ("while", TokenType::WHILE),
+    static ref KEYWORDS: HashMap<&'static str, KeywordType> = HashMap::from([
+                ("and", KeywordType::AND),
+                ("class", KeywordType::CLASS),
+                ("else", KeywordType::ELSE),
+                ("false", KeywordType::FALSE),
+                ("for", KeywordType::FOR),
+                ("fun", KeywordType::FUN),
+                ("if", KeywordType::IF),
+                ("nil", KeywordType::NIL),
+                ("or", KeywordType::OR),
+                ("print", KeywordType::PRINT),
+                ("return", KeywordType::RETURN),
+                ("super", KeywordType::SUPER),
+                ("this", KeywordType::THIS),
+                ("true", KeywordType::TRUE),
+                ("var", KeywordType::VAR),
+                ("while", KeywordType::WHILE),
             ]);
-}
-
-pub struct Token {
-    _type: TokenType,
-    _string: String,
-    _value: Option<String>,
-}
-
-impl Token {
-    pub fn new_char(_type: TokenType, _char: char) -> Self {
-        Token {
-            _type,
-            _value: None,
-            _string: _char.to_string(),
-        }
-    }
-
-    pub fn new_content(_type: TokenType, _string: String, _value: String) -> Self {
-        Token {
-            _type,
-            _string,
-            _value: Some(_value),
-        }
-    }
-
-    pub fn new(_type: TokenType, _string: String) -> Self {
-        Token {
-            _type,
-            _string,
-            _value: None,
-        }
-    }
-}
-
-impl Display for Token {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{:?} {} {}",
-            self._type,
-            self._string,
-            self._value.clone().unwrap_or("null".to_string())
-        )
-    }
-}
-
-#[derive(Debug, Clone)]
-#[allow(non_camel_case_types)]
-enum TokenType {
-    LEFT_PAREN,
-    RIGHT_PAREN,
-    LEFT_BRACE,
-    RIGHT_BRACE,
-    COMMA,
-    DOT,
-    MINUS,
-    PLUS,
-    SEMICOLON,
-    STAR,
-    EQUAL,
-    EQUAL_EQUAL,
-    BANG,
-    BANG_EQUAL,
-    LESS,
-    GREATER,
-    LESS_EQUAL,
-    GREATER_EQUAL,
-    SLASH,
-    STRING,
-    NUMBER,
-    IDENTIFIER,
-    AND,
-    CLASS,
-    ELSE,
-    FALSE,
-    FOR,
-    FUN,
-    IF,
-    NIL,
-    OR,
-    PRINT,
-    RETURN,
-    SUPER,
-    THIS,
-    TRUE,
-    VAR,
-    WHILE,
 }
