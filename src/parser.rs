@@ -93,13 +93,10 @@ fn unary(parser: &Parser) -> Result<Expr, ParserError> {
 
 /// literal -> string, number, boolean, nil, (, )
 fn primary(parser: &Parser) -> Result<Expr, ParserError> {
-    if parser.match_token(TokenType::KEYWORD(KeywordType::FALSE)) {
-        get_or_ex_value("false invalid", parser, |_, token| Expr::Literal("false".to_string(), token))
-    } else if parser.match_token(TokenType::KEYWORD(KeywordType::TRUE)) {
-        get_or_ex_value("true invalid", parser, |_, token| Expr::Literal("true".to_string(), token))
-    } else if parser.match_token(TokenType::KEYWORD(KeywordType::NIL)) {
-        get_or_ex_value("null invalid", parser, |_, token| Expr::Literal("nil".to_string(), token))
-    } else if parser.match_token(TokenType::STRING) {
+    if let Some(keyword) = parser.match_keyword() {
+        return Ok(Expr::Literal(keyword.0.to_string().to_string(), keyword.1.clone()));
+    }
+    if parser.match_token(TokenType::STRING) {
         get_or_ex_value("string invalid", parser, |val, token| Expr::Literal(val, token))
     } else if parser.match_token(TokenType::NUMBER) {
         get_or_ex_value("number invalid", parser, |val, token| Expr::Literal(val, token))
@@ -196,5 +193,16 @@ impl Parser {
             }
         }
         false
+    }
+
+    /// проверяет на ключевое слово
+    fn match_keyword(&self) -> Option<(KeywordType, &Token)> {
+        if let Some(next) = self.peek() {
+            if let TokenType::KEYWORD(kw) = &next._type {
+                self.next();
+                return Some((kw.clone(), next));
+            }
+        }
+        None
     }
 }

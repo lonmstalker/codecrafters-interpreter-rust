@@ -175,7 +175,7 @@ impl TokenType {
 }
 
 impl KeywordType {
-    fn to_string(&self) -> &'static str {
+    pub fn to_string(&self) -> &'static str {
         match self {
             KeywordType::AND => "AND",
             KeywordType::CLASS => "CLASS",
