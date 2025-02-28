@@ -23,12 +23,12 @@ fn main() -> ExitCode {
             for x in result.tokens {
                 println!("{}", x);
             }
-            return result.code;
+            return ExitCode::from(result.code);
         }
         "parse" => {
             let result = lexer::tokenize(filename);
-            if result.code != ExitCode::SUCCESS {
-                return result.code;
+            if result.code != 0 {
+                return ExitCode::from(result.code);
             }
             match parser::parse(result) {
                 Ok(ast) => {
@@ -36,7 +36,7 @@ fn main() -> ExitCode {
                 }
                 Err(e) => {
                     if let domain::ParserError::Default(_, _, code) = e {
-                        return code;
+                        return ExitCode::from(code);
                     }
                 }
             }

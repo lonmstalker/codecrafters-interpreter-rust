@@ -1,5 +1,4 @@
 use std::fmt::{Display, Formatter};
-use std::process::ExitCode;
 
 #[derive(Debug, Clone)]
 pub struct AST {
@@ -8,7 +7,7 @@ pub struct AST {
 
 #[derive(Debug, Clone)]
 pub struct Tokens {
-    pub code: ExitCode,
+    pub code: u8,
     pub tokens: Vec<Token>,
 }
 
@@ -22,7 +21,7 @@ pub enum Expr {
 
 #[derive(Debug, Clone)]
 pub enum ParserError {
-    Default(String, Token, ExitCode)
+    Default(String, Token, u8)
 }
 
 #[derive(Debug, Clone, PartialEq)]

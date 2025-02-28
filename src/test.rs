@@ -6,7 +6,6 @@ use crate::parser::parse;
 mod test_lexer {
     use crate::domain::{Token, TokenType};
     use crate::test::generate_tokens;
-    use std::process::ExitCode;
 
     #[test]
     fn test_base_code_tokens() {
@@ -20,7 +19,7 @@ mod test_lexer {
         // then:
         println!("{:?}", tokens.tokens);
         assert_eq!(8, tokens.tokens.len());
-        assert_eq!(ExitCode::SUCCESS, tokens.code);
+        assert_eq!(0, tokens.code);
 
         check_tokens(
             tokens.tokens,
@@ -49,7 +48,7 @@ mod test_lexer {
         // then:
         println!("{:?}", tokens.tokens);
         assert_eq!(5, tokens.tokens.len());
-        assert_eq!(ExitCode::SUCCESS, tokens.code);
+        assert_eq!(0, tokens.code);
 
         check_tokens_val(
             tokens.tokens,

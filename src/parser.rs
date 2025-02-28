@@ -1,7 +1,6 @@
 use crate::domain::TokenType::{BANG_EQUAL, EQUAL_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL};
 use crate::domain::{Expr, KeywordType, ParserError, Token, TokenType, Tokens, AST, ParserError::Default};
 use std::cell::Cell;
-use std::process::ExitCode;
 use std::rc::Rc;
 
 /// priority top-down
@@ -110,7 +109,7 @@ fn primary(parser: &Parser) -> Result<Expr, ParserError> {
     } else {
         return Err(Default("token not supported".to_string(),
                            parser.previous().expect("token not found").clone(),
-                           ExitCode::from(65)))
+                           65))
     }
 }
 
@@ -118,12 +117,12 @@ fn get_or_ex_value(message: &str, parser: &Parser, convert: impl FnOnce(String) 
     match parser.previous() {
         None => Err(Default(message.to_string(),
                             parser.peek().expect("token not found").clone(),
-                            ExitCode::from(65))),
+                            65)),
         Some(result) => {
             match &result._value {
                 None => Err(Default(message.to_string(),
                                     parser.previous().expect("token not found").clone(),
-                                    ExitCode::from(65))),
+                                    65)),
                 Some(value) => Ok(convert(value.clone()))
             }
         }
@@ -174,7 +173,7 @@ impl Parser {
         if self.check(token_type) {
             Ok(self.next().expect("token error"))
         } else {
-            Err(Default(message.to_string(), self.peek().expect("token error").clone(), ExitCode::from(65)))
+            Err(Default(message.to_string(), self.peek().expect("token error").clone(), 65))
         }
     }
 

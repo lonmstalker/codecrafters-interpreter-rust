@@ -3,7 +3,6 @@ use lazy_static::lazy_static;
 use std::collections::HashMap;
 use std::io::Write;
 use std::iter::Peekable;
-use std::process::ExitCode;
 use std::str::Chars;
 use std::{fs, io};
 
@@ -24,7 +23,7 @@ fn process_tokens(code: String) -> Tokens {
     let mut line = 1;
     let mut col = 0;
 
-    let mut result = ExitCode::SUCCESS;
+    let mut result: u8 = 0;
     let mut tokens = Vec::new();
     let mut data = code.chars().peekable();
 
@@ -74,7 +73,7 @@ fn process_tokens(code: String) -> Tokens {
                 }
                 '"' => {
                     let string_res = string(&mut data, line, col);
-                    if string_res.2 != ExitCode::SUCCESS {
+                    if string_res.2 != 0 {
                         result = string_res.2;
                     } else {
                         let cur_col = col;
@@ -104,7 +103,7 @@ fn process_tokens(code: String) -> Tokens {
                     } else {
 
                         eprintln!("[line {}] Error: Unexpected character: {}", line, c);
-                        result = ExitCode::from(65)
+                        result = 65
                     }
                 }
             }
@@ -145,9 +144,9 @@ fn skip_while(data: &mut Peekable<Chars>, predict: impl Fn(char) -> bool) {
     }
 }
 
-fn string(data: &mut Peekable<Chars>, line: i32, col: i32) -> (String, String, ExitCode, i32) {
+fn string(data: &mut Peekable<Chars>, line: i32, col: i32) -> (String, String, u8, i32) {
     let mut col = col;
-    let mut result = ExitCode::SUCCESS;
+    let mut result: u8 = 0;
     let mut value = String::new();
     let mut string = String::from('"');
 
@@ -161,7 +160,7 @@ fn string(data: &mut Peekable<Chars>, line: i32, col: i32) -> (String, String, E
             value.push(next);
         } else {
             eprintln!("[line {}] Error: Unterminated string.", line);
-            result = ExitCode::from(65);
+            result = 65;
             break;
         }
     }
