@@ -62,6 +62,31 @@ mod test_lexer {
         )
     }
 
+    #[test]
+    fn test_bang_equal_tokens() {
+
+        // given:
+        let code = "12 != 13";
+
+        // when:
+        let tokens = generate_tokens(code.to_string());
+
+        // then:
+        println!("{:?}", tokens.tokens);
+        assert_eq!(4, tokens.tokens.len());
+        assert_eq!(0, tokens.code);
+
+        check_tokens_val(
+            tokens.tokens,
+            Vec::from([
+                (TokenType::NUMBER, "12", Some("12.0")),
+                (TokenType::BANG_EQUAL, "!=", None),
+                (TokenType::NUMBER, "13", Some("13.0")),
+                (TokenType::EOF, "", None)
+            ]),
+        )
+    }
+
     fn check_tokens(tokens: Vec<Token>, expected: Vec<(TokenType, &str)>) {
         for (index, expected_token) in expected.into_iter().enumerate() {
             let token = tokens.get(index);

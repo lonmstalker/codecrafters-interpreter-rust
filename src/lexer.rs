@@ -123,7 +123,7 @@ fn composite_token(data: &mut Peekable<Chars>,
                    else_token: TokenType) -> (TokenType, String, i32) {
     if let Some(&next) = data.peek() {
         if next == next_char {
-            let mut result = String::from(next_char);
+            let mut result = String::from(current_char);
             result.push(data.next().unwrap());
             return (then_token, result, column + 1);
         }
