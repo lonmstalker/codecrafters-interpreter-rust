@@ -65,7 +65,6 @@ fn process_tokens(code: String) -> Tokens {
                     if let Some(&next) = data.peek() {
                         if next == '/' {
                             skip_while(&mut data, |token| token != '\n');
-                            line += 1;
                             continue;
                         }
                     }
