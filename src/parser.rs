@@ -1,7 +1,6 @@
 use crate::domain::TokenType::{BANG_EQUAL, EQUAL_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL};
-use crate::domain::{Expr, KeywordType, ParserError, Token, TokenType, Tokens, AST, ParserError::Default};
+use crate::domain::{Expr, KeywordType, ParserError, ParserError::Default, Token, TokenType, Tokens, AST};
 use std::cell::Cell;
-use std::env::var;
 use std::rc::Rc;
 
 /// priority top-down
@@ -96,7 +95,7 @@ fn primary(parser: &Parser) -> Result<Expr, ParserError> {
     if let Some(keyword) = parser.match_keyword() {
         return Ok(Expr::Literal(keyword.0.to_string().to_lowercase(), keyword.1.clone()));
     }
-    if parser.match_token(TokenType::STRING) {
+    if parser.match_tokens(&[TokenType::STRING, TokenType::IDENTIFIER]) {
         get_or_ex_value("string invalid", parser, |val, token| Expr::Literal(val, token))
     } else if parser.match_token(TokenType::NUMBER) {
         get_or_ex_value("number invalid", parser, |val, token| Expr::Literal(val, token))

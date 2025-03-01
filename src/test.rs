@@ -172,6 +172,88 @@ mod test_parser {
             _ => assert!(false, "invalid type main")
         }
     }
+
+    #[test]
+    fn test_bang_equal_parser() {
+
+        // given:
+        let code = "BANG_EQUAL == null";
+
+        // when:
+        let ast_result = parse_tokens(code.to_string());
+
+        // then:
+        println!("{:?}", ast_result);
+        assert!(ast_result.is_ok());
+
+        let ast = ast_result.unwrap();
+
+        match ast.expr {
+            Expr::Binary(left, token, right) => {
+                assert_eq!(TokenType::EQUAL_EQUAL, token._type);
+
+                let right_val = &*right;
+
+                match *left {
+                    Expr::Literal(_, token) => {
+                        assert_eq!("BANG_EQUAL", token._string);
+                        assert_eq!(TokenType::IDENTIFIER, token._type)
+                    }
+                    _ => assert!(false, "invalid type left")
+                }
+
+                match *right {
+                    Expr::Literal(_, token) => {
+                        assert_eq!("null", token._string);
+                        assert_eq!(TokenType::IDENTIFIER, token._type)
+                    }
+                    _ => assert!(false, "invalid type right")
+                }
+            }
+            _ => assert!(false, "invalid type main")
+        }
+    }
+
+    #[test]
+    fn test_bang_bang_equal_parser() {
+
+        // given:
+        let code = "BANG_EQUAL != null";
+
+        // when:
+        let ast_result = parse_tokens(code.to_string());
+
+        // then:
+        println!("{:?}", ast_result);
+        assert!(ast_result.is_ok());
+
+        let ast = ast_result.unwrap();
+
+        match ast.expr {
+            Expr::Binary(left, token, right) => {
+                assert_eq!(TokenType::BANG_EQUAL, token._type);
+
+                let right_val = &*right;
+
+                match *left {
+                    Expr::Literal(_, token) => {
+                        assert_eq!("BANG_EQUAL", token._string);
+                        assert_eq!(TokenType::IDENTIFIER, token._type)
+                    }
+                    _ => assert!(false, "invalid type left")
+                }
+
+                match *right {
+                    Expr::Literal(_, token) => {
+                        assert_eq!("null", token._string);
+                        assert_eq!(TokenType::IDENTIFIER, token._type)
+                    }
+                    _ => assert!(false, "invalid type right")
+                }
+            }
+            _ => assert!(false, "invalid type main")
+        }
+    }
 }
 
 fn parse_tokens(code: String) -> Result<AST, ParserError> {

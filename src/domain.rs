@@ -85,7 +85,7 @@ impl Display for Token {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{} {} {}",
+            "{} {} {}", // {?:} добавляет кавычки
             self._type.to_string(),
             self._string,
             self._value.clone().unwrap_or("null".to_string())

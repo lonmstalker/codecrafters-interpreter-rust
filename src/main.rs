@@ -6,6 +6,7 @@ mod test;
 use std::env;
 use std::io::{self, Write};
 use std::process::ExitCode;
+use crate::domain::ParserError;
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().collect();
@@ -35,7 +36,7 @@ fn main() -> ExitCode {
                     println!("{}", ast.expr);
                 }
                 Err(e) => {
-                    if let domain::ParserError::Default(_, _, code) = e {
+                    if let ParserError::Default(_, _, code) = e {
                         return ExitCode::from(code);
                     }
                 }
